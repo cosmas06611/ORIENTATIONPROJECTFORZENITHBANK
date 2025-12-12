@@ -42,12 +42,12 @@ public class StudentController {
 //    admin can search all result by orientation class number
     @GetMapping("grade/{orientationClassNumber}")
     public ResponseEntity< List <Grade>> getResultByOrientationClassNumber(@PathVariable String orientationClassNumber){
-        String normalizedInput = orientationClassNumber.replaceAll("\\s+", "").toLowerCase();
-        List <Grade> orientationResult = studentService.getResultByOrientationClassNumber(normalizedInput);
-        if(!normalizedInput.isEmpty()){
-            return new ResponseEntity<>(orientationResult, HttpStatus.FOUND);
+        List <Grade> orientationResult = studentService.getResultByOrientationClassNumber(orientationClassNumber);
+        if (orientationResult.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(orientationResult, HttpStatus.OK);
     }
 
 //    admin can also input the grades manually from the ui interface
