@@ -3,14 +3,14 @@ package com.cosmas.orientationapp.service;
 import com.cosmas.model.Grade;
 import com.cosmas.orientationapp.repository.StudentRepo;
 
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,12 +20,12 @@ public class StudentService {
     private StudentRepo studentRepo;
 
 
-    public StudentService(StudentRepo studentRepo){
+    public StudentService(StudentRepo studentRepo) {
         this.studentRepo = studentRepo;
     }
 
     public List<Grade> getStudentGrades() {
-       return studentRepo.findAll();
+        return studentRepo.findAll();
     }
 
     public Grade getStudentGrade(String staffNumber) {
@@ -33,49 +33,127 @@ public class StudentService {
     }
 
     public Grade addGrade(Grade grade) {
-            return studentRepo.save(grade);
+        return studentRepo.save(grade);
     }
 
-    public void saveGradesFromExcel(MultipartFile file) {
-        try {
-            Workbook workbook = WorkbookFactory.create(file.getInputStream());
-            Sheet sheet = workbook.getSheetAt(0);
+    public void importGradesFromExcel(MultipartFile file) {
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {   // Skip header row
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
+        try (InputStream is = file.getInputStream();
+             Workbook workbook = WorkbookFactory.create(is)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rows = sheet.iterator();
+
+            List<Grade> grades = new ArrayList<>();
+
+            while (rows.hasNext()) {
+                Row row = rows.next();
+
+//                 KEY RULE: staffNumber decides if row is data or header
+                String staffNumber = getString(row, 0);
+
+                // Ignore all headers, titles, empty rows
+                if (!isValidStaffNumber(staffNumber)) {
+                    continue;
+                }
 
                 Grade grade = new Grade();
-                grade.setStaffNumber(row.getCell(0).getStringCellValue());
-                grade.setName(row.getCell(1).getStringCellValue());
-                grade.setGrade(row.getCell(2).getStringCellValue());
-                grade.setBranch(row.getCell(3).getStringCellValue());
-                grade.setJobTitle(row.getCell(4).getStringCellValue());
-                grade.setMonthAndYear(row.getCell(5).getStringCellValue());
-                grade.setOrientationClassNumber(row.getCell(6).getStringCellValue());
+                grade.setStaffNumber(staffNumber);
+                grade.setName(getString(row, 1));
+                grade.setGrade(getString(row, 2));
+                grade.setBranch(getString(row, 3));
+                grade.setJobTitle(getString(row, 4));
+                grade.setMonthAndYear(getString(row, 5));
+                grade.setOrientationClassNumber(getString(row, 6));
 
-                grade.setSelfMastery((int) row.getCell(7).getNumericCellValue());
-                grade.setBasicEmergencyResponse((int) row.getCell(8).getNumericCellValue());
-                grade.setBasicAccounting((int) row.getCell(9).getNumericCellValue());
-                grade.setFundamentalsOfCredit((int) row.getCell(10).getNumericCellValue());
-                grade.setUnderstandingBankingBusiness((int) row.getCell(11).getNumericCellValue());
-                grade.setZenithInternalCourse((int) row.getCell(12).getNumericCellValue());
-                grade.setTotalScore((int) row.getCell(13).getNumericCellValue());
-                grade.setAverageScore((int) row.getCell(14).getNumericCellValue());
-                grade.setPosition((int) row.getCell(15).getNumericCellValue());
-                grade.setRemark(row.getCell(16).getStringCellValue());
+                grade.setSelfMastery(getInt(row, 7));
+                grade.setBasicEmergencyResponse(getInt(row, 8));
+                grade.setBasicAccounting(getInt(row, 9));
+                grade.setFundamentalsOfCredit(getInt(row, 10));
+                grade.setUnderstandingBankingBusiness(getInt(row, 11));
+                grade.setZenithInternalCourse(getInt(row, 12));
 
-                studentRepo.save(grade);
+                grade.setTotalScore(getInt(row, 13));
+                grade.setAverageScore(getInt(row, 14));
+                grade.setPosition(getInt(row, 15));
+                grade.setRemark(getString(row, 16));
+
+                grades.add(grade);
             }
 
-            workbook.close();
+            //  Save in batch (faster & safer)
+            studentRepo.saveAll(grades);
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to process Excel file: " + e.getMessage());
+            throw new RuntimeException("Failed to upload Excel: " + e.getMessage(), e);
         }
+    }
+
+    // ===================== HELPERS =====================
+
+    private boolean isValidStaffNumber(String value) {
+        if (value == null) return false;
+
+        String v = value.trim();
+
+        // Ignore column headers
+        if (v.equalsIgnoreCase("staffnumber")) return false;
+        if (v.equalsIgnoreCase("staff number")) return false;
+
+        // Optional: enforce your staff number format
+        // Example: ZB12001
+        return v.matches("[A-Za-z0-9]+");
+    }
+
+    private String getString(Row row, int index) {
+        Cell cell = row.getCell(index, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        if (cell == null) return null;
+
+        if (cell.getCellType() == CellType.STRING) {
+            return cell.getStringCellValue().trim();
+        }
+
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return String.valueOf((long) cell.getNumericCellValue());
+        }
+
+        return null;
+    }
+
+    private int getInt(Row row, int index) {
+        Cell cell = row.getCell(index, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        if (cell == null) return 0;
+
+        if (cell.getCellType() == CellType.NUMERIC) {
+            return (int) cell.getNumericCellValue();
+        }
+
+        if (cell.getCellType() == CellType.STRING) {
+            try {
+                return Integer.parseInt(cell.getStringCellValue().trim());
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+
+        return 0;
     }
 
     public List<Grade> getResultByOrientationClassNumber(String orientationClassNumber) {
         return studentRepo.findByOrientationClassNumber(orientationClassNumber);
 
+    }
+
+    public Grade deleteGrade(String staffNumber) {
+        Grade report = studentRepo.findByStaffNumberIgnoreCase(staffNumber).orElseThrow(() ->
+                new RuntimeException("The result for " + staffNumber + " does not exist"));
+
+        studentRepo.delete(report);
+        return report;
+
+    }
+
+    public Grade updateResult(Grade result) {
+        return studentRepo.save(result);
     }
 }

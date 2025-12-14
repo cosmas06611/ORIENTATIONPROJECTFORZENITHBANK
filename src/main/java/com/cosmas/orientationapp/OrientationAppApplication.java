@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
-@EntityScan(basePackages = "com.cosmas.Model")
+@EntityScan(basePackages = "com.cosmas.model")
 @EnableJpaRepositories(basePackages = "com.cosmas.orientationApp.repository")
 public class OrientationAppApplication {
 
