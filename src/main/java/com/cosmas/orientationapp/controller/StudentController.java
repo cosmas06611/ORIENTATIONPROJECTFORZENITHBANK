@@ -1,6 +1,6 @@
 package com.cosmas.orientationapp.controller;
 
-import com.cosmas.model.Grade;
+import com.cosmas.orientationapp.model.Grade;
 import com.cosmas.orientationapp.service.StudentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.cosmas.model;
+package com.cosmas.orientationapp.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

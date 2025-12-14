@@ -1,6 +1,6 @@
 package com.cosmas.orientationapp.repository;
 
-import com.cosmas.model.Grade;
+import com.cosmas.orientationapp.model.Grade;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
