@@ -1,41 +1,17 @@
-# # -------- Step 1: Build the project --------
-# FROM maven:3.9.0-eclipse-temurin-17 AS build
-# WORKDIR /app
-#
-# COPY pom.xml .
-# RUN mvn dependency:go-offline
-#
-# COPY src ./src
-# RUN mvn clean package -DskipTests
-#
-# # -------- Step 2: Run the JAR --------
-# FROM eclipse-temurin:17-jdk
-# WORKDIR /app
-# COPY --from=build /app/target/*.jar app.jar
-# EXPOSE 8080
-# ENTRYPOINT ["java", "-jar", "app.jar"]
 
-# -------- Step 1: Build the project --------
-FROM maven:3.9.0-eclipse-temurin-17 AS build
-WORKDIR /app
+FROM maven:3.8.5-openjdk-17 AS build
+
 
 # Copy only pom.xml to cache dependencies
-COPY pom.xml .
-RUN mvn dependency:go-offline
+COPY . .
+RUN mvn clean package -DskipTests
 
 # Copy source code and build JAR
 COPY src ./src
 RUN mvn clean package -DskipTests
 
 # -------- Step 2: Run the JAR --------
-FROM eclipse-temurin:17-jdk
-WORKDIR /app
-
-# Copy the JAR from the build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Expose port
+FROM openjdk:17.0.1-jdk-slim
+COPY --from=build/target/orientationApp-0.0.1-SNAPSHOT.jar orientationApp.jar
 EXPOSE 8080
-
-# Run the app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "orientationApp.jar"]
