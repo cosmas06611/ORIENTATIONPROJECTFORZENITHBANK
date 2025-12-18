@@ -1,8 +1,9 @@
 package com.cosmas.orientationapp.service;
 
-import com.cosmas.orientationapp.model.Grade;
+import com.cosmas.model.Result;
 import com.cosmas.orientationapp.repository.StudentRepo;
 
+import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,25 +16,26 @@ import java.util.List;
 @Service
 public class StudentService {
 
-    private StudentRepo studentRepo;
+    private final StudentRepo studentRepo;
 
 
     public StudentService(StudentRepo studentRepo) {
         this.studentRepo = studentRepo;
     }
 
-    public List<Grade> getStudentGrades() {
+    public List<Result> getStudentGrades() {
         return studentRepo.findAll();
     }
 
-    public Grade getStudentGrade(String staffNumber) {
-        return studentRepo.findById(staffNumber).orElse(new Grade());
+    public Result getStudentGrade(String staffNumber) {
+        return studentRepo.findById(staffNumber).orElse(new Result());
     }
 
-    public Grade addGrade(Grade grade) {
+    public Result addGrade(Result grade) {
         return studentRepo.save(grade);
     }
 
+    @Transactional
     public void importGradesFromExcel(MultipartFile file) {
 
         try (InputStream is = file.getInputStream();
@@ -42,7 +44,7 @@ public class StudentService {
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rows = sheet.iterator();
 
-            List<Grade> grades = new ArrayList<>();
+            List<Result> grades = new ArrayList<>();
 
             while (rows.hasNext()) {
                 Row row = rows.next();
@@ -50,15 +52,20 @@ public class StudentService {
 //                 KEY RULE: staffNumber decides if row is data or header
                 String staffNumber = getString(row, 0);
 
-                // Ignore all headers, titles, empty rows
-                if (!isValidStaffNumber(staffNumber)) {
-                    continue;
+//                // Ignore all headers, titles, empty rows
+//                if (!isValidStaffNumber(staffNumber)) {
+//                    continue;
+//                }
+
+                // KEY CHANGE: Check for headers first, then validate the ID format
+                if (isHeader(staffNumber) || !isValidStaffNumber(staffNumber)) {
+                    continue; // This safely skips headers AND empty/garbage rows
                 }
 
-                Grade grade = new Grade();
+                Result grade = new Result();
                 grade.setStaffNumber(staffNumber);
                 grade.setName(getString(row, 1));
-                grade.setGrade(getString(row, 2));
+                grade.setLevel(getString(row, 2));
                 grade.setBranch(getString(row, 3));
                 grade.setJobTitle(getString(row, 4));
                 grade.setMonthAndYear(getString(row, 5));
@@ -87,20 +94,34 @@ public class StudentService {
         }
     }
 
-    // ===================== HELPERS =====================
+    // HELPERS
+
+//    private boolean isValidStaffNumber(String value) {
+//        if (value == null) return false;
+//
+//        String v = value.trim();
+//
+//        // Ignore column headers
+//        if (v.equalsIgnoreCase("staffnumber")) return false;
+//        if (v.equalsIgnoreCase("staff number")) return false;
+//
+//        // Optional: enforce your staff number format
+//        // Example: ZB12001
+//        return v.matches("[A-Za-z0-9]+");
+//    }
+
+
+    private boolean isHeader(String value) {
+        if (value == null) return false;
+        String v = value.trim();
+        // Returns true for any variation of these words
+        return v.equalsIgnoreCase("staffnumber") || v.equalsIgnoreCase("staff number");
+    }
 
     private boolean isValidStaffNumber(String value) {
         if (value == null) return false;
-
-        String v = value.trim();
-
-        // Ignore column headers
-        if (v.equalsIgnoreCase("staffnumber")) return false;
-        if (v.equalsIgnoreCase("staff number")) return false;
-
-        // Optional: enforce your staff number format
-        // Example: ZB12001
-        return v.matches("[A-Za-z0-9]+");
+        // Only returns true if it matches your alphanumeric pattern (e.g., ZB12001)
+        return value.trim().matches("[A-Za-z0-9]+");
     }
 
     private String getString(Row row, int index) {
@@ -137,13 +158,13 @@ public class StudentService {
         return 0;
     }
 
-    public List<Grade> getResultByOrientationClassNumber(String orientationClassNumber) {
+    public List<Result> getResultByOrientationClassNumber(String orientationClassNumber) {
         return studentRepo.findByOrientationClassNumber(orientationClassNumber);
 
     }
 
-    public Grade deleteGrade(String staffNumber) {
-        Grade report = studentRepo.findByStaffNumberIgnoreCase(staffNumber).orElseThrow(() ->
+    public Result deleteGrade(String staffNumber) {
+        Result report = studentRepo.findByStaffNumberIgnoreCase(staffNumber).orElseThrow(() ->
                 new RuntimeException("The result for " + staffNumber + " does not exist"));
 
         studentRepo.delete(report);
@@ -151,7 +172,7 @@ public class StudentService {
 
     }
 
-    public Grade updateResult(Grade result) {
+    public Result updateResult(Result result) {
         return studentRepo.save(result);
     }
 }

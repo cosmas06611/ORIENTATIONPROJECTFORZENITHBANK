@@ -1,5 +1,6 @@
-package com.cosmas.orientationapp.model;
+package com.cosmas.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -11,14 +12,15 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Grade {
+public class Result {
 
     @Id
     private String staffNumber;
     private String name;
-    private String grade;
+    private String level;
     private String branch;
     private String jobTitle;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private String monthAndYear;
     private String orientationClassNumber;
     private int selfMastery;

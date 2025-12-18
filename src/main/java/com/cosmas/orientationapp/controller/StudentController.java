@@ -1,6 +1,6 @@
 package com.cosmas.orientationapp.controller;
 
-import com.cosmas.orientationapp.model.Grade;
+import com.cosmas.model.Result;
 import com.cosmas.orientationapp.service.StudentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,17 +13,19 @@ import java.util.List;
 @RequestMapping("/api")
 public class StudentController {
 
-    private StudentService studentService;
+    private final StudentService studentService;
 
 
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
     }
 
+
+
     //    admin can get all th result
     @GetMapping("/grades")
-    public ResponseEntity<List<Grade>> getStudentResult() {
-        List<Grade> studGrade = studentService.getStudentGrades();
+    public ResponseEntity<List<Result>> getStudentResult() {
+        List<Result> studGrade = studentService.getStudentGrades();
         if (studGrade != null && !studGrade.isEmpty()) {
             return ResponseEntity.ok(studGrade);
         }
@@ -32,8 +34,8 @@ public class StudentController {
 
     //    user can only search their result by USING staff number USED IN REGISTERING
     @GetMapping("/grades/{staffNumber}")
-    public ResponseEntity<Grade> getResultByStaffNumber(@PathVariable String staffNumber) {
-        Grade staffGrade = studentService.getStudentGrade(staffNumber);
+    public ResponseEntity<Result> getResultByStaffNumber(@PathVariable String staffNumber) {
+        Result staffGrade = studentService.getStudentGrade(staffNumber);
         if (staffGrade != null) {
             return new ResponseEntity<>(staffGrade, HttpStatus.FOUND);
         }
@@ -42,8 +44,8 @@ public class StudentController {
 
     //    admin can search all result by orientation class number
     @GetMapping("grade/{orientationClassNumber}")
-    public ResponseEntity<List<Grade>> getResultByOrientationClassNumber(@PathVariable String orientationClassNumber) {
-        List<Grade> orientationResult = studentService.getResultByOrientationClassNumber(orientationClassNumber);
+    public ResponseEntity<List<Result>> getResultByOrientationClassNumber(@PathVariable String orientationClassNumber) {
+        List<Result> orientationResult = studentService.getResultByOrientationClassNumber(orientationClassNumber);
         if (orientationResult.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -52,12 +54,12 @@ public class StudentController {
 
     //    admin can also ADD the grades manually from the ui interface
     @PostMapping("/grades")
-    public ResponseEntity<Grade> addResult(@RequestBody Grade grade) {
-        Grade savedGrade = studentService.addGrade(grade);
+    public ResponseEntity<Result> addResult(@RequestBody Result grade) {
+        Result savedGrade = studentService.addGrade(grade);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedGrade);
     }
 
-    //    this is to upload the excel sheet by the admin
+    //    this is to upload the Excel sheet by the admin
     @PostMapping("/grades/upload")
     public ResponseEntity<String> uploadGrades(@RequestParam("file") MultipartFile file) {
         try {
@@ -78,8 +80,8 @@ public class StudentController {
 
 //    ADMIN CAN UPDATE RESULT RECORD FOR A STAFF
     @PutMapping("/update")
-    public ResponseEntity<Grade> updateResult(@RequestBody Grade result){
-        Grade report = studentService.updateResult(result);
+    public ResponseEntity<Result> updateResult(@RequestBody Result result){
+        Result report = studentService.updateResult(result);
         if(report != null){
             return new ResponseEntity<>(report, HttpStatus.OK);
         }
