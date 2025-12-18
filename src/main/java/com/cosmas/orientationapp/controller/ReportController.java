@@ -1,9 +1,11 @@
 package com.cosmas.orientationapp.controller;
 
+import com.cosmas.dto.DashboardStatsDTO;
 import com.cosmas.orientationapp.service.ReportService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +35,11 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename= " + filename)
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(file);
-
     }
 
+    @GetMapping("/dashboard")
+    public ResponseEntity<DashboardStatsDTO> getDashBoard(){
+        return ResponseEntity.ok(reportService.getDashboardStats());
+    }
 
 }

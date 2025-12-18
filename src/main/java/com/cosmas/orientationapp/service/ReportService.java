@@ -4,6 +4,7 @@ import com.cosmas.dto.DashboardStatsDTO;
 import com.cosmas.model.Batch;
 import com.cosmas.orientationapp.repository.BatchRepo;
 import com.cosmas.orientationapp.repository.StudentRepo;
+import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -37,7 +38,7 @@ public class ReportService {
         return new DashboardStatsDTO(total, completed, pending, completionPct, pendingPct);
     }
 
-
+        @Transactional
     public ByteArrayInputStream generatePendingStudentsExcel() throws IOException{
         List<Batch> pendingStudents = batchRepo.findStudentsWithoutResults();
 

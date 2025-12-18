@@ -37,10 +37,17 @@ public class BatchController {
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
-
+    @DeleteMapping("batch/{batchNumber}")
     public ResponseEntity<?> deleteBatchByBatchNumber(@PathVariable int batchNumber){
         batchService.deleteBatchByBatchNumber(batchNumber);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
+
+//    this delete is for admin to delete staff who resigned before orientation.
+    @DeleteMapping("batch/{staffNumber}")
+    public ResponseEntity deleteByStaffNumber(@PathVariable String staffNumber){
+        String message = batchService.deleteStaffByStaffNumber(staffNumber);
+        return ResponseEntity.ok(message);
+    }
 }

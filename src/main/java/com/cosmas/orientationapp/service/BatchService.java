@@ -156,6 +156,15 @@ private int getInt(Row row, int index){
             throw new RuntimeException("Failed to delete batch: " + e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public String deleteStaffByStaffNumber(String staffNumber){
+      if(!batchRepo.existsById(staffNumber)){
+          return String.format(" %s does not exist", staffNumber);
+      }
+      batchRepo.deleteById(staffNumber);
+      return "Staff member " + staffNumber + " has been successfully removed from the batch.";
+    }
 }
 
 
