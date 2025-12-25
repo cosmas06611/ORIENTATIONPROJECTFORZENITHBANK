@@ -3,7 +3,7 @@ package com.cosmas.orientationapp.service;
 import com.cosmas.dto.DashboardStatsDTO;
 import com.cosmas.model.Batch;
 import com.cosmas.orientationapp.repository.BatchRepo;
-import com.cosmas.orientationapp.repository.StudentRepo;
+import com.cosmas.orientationapp.repository.ResultRepo;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -20,9 +20,9 @@ import java.util.List;
 @Service
 public class ReportService {
     private final BatchRepo batchRepo;
-    private final StudentRepo studentRepo;
+    private final ResultRepo studentRepo;
 
-    public ReportService(BatchRepo batchRepo, StudentRepo studentRepo){
+    public ReportService(BatchRepo batchRepo, ResultRepo studentRepo){
         this.batchRepo = batchRepo;
         this.studentRepo = studentRepo;
     }

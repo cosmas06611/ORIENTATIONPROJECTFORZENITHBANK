@@ -1,10 +1,11 @@
 package com.cosmas.orientationapp.service;
 
 import com.cosmas.model.Result;
-import com.cosmas.orientationapp.repository.StudentRepo;
+import com.cosmas.orientationapp.repository.ResultRepo;
 
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,25 +15,23 @@ import java.util.Iterator;
 import java.util.List;
 
 @Service
-public class StudentService {
+public class ResultService {
 
-    private final StudentRepo studentRepo;
+    private final ResultRepo resultRepo;
 
 
-    public StudentService(StudentRepo studentRepo) {
-        this.studentRepo = studentRepo;
+    public ResultService(ResultRepo resultRepo) {
+        this.resultRepo = resultRepo;
     }
 
     public List<Result> getStudentGrades() {
-        return studentRepo.findAll();
+        return resultRepo.findAll();
     }
 
-    public Result getStudentGrade(String staffNumber) {
-        return studentRepo.findById(staffNumber).orElse(new Result());
-    }
+
 
     public Result addGrade(Result grade) {
-        return studentRepo.save(grade);
+        return resultRepo.save(grade);
     }
 
     @Transactional
@@ -87,7 +86,7 @@ public class StudentService {
             }
 
             //  Save in batch (faster & safer)
-            studentRepo.saveAll(grades);
+            resultRepo.saveAll(grades);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload Excel: " + e.getMessage(), e);
@@ -159,20 +158,34 @@ public class StudentService {
     }
 
     public List<Result> getResultByOrientationClassNumber(String orientationClassNumber) {
-        return studentRepo.findByOrientationClassNumber(orientationClassNumber);
+        return resultRepo.findByOrientationClassNumber(orientationClassNumber);
 
     }
 
     public Result deleteGrade(String staffNumber) {
-        Result report = studentRepo.findByStaffNumberIgnoreCase(staffNumber).orElseThrow(() ->
+        Result report = resultRepo.findByStaffNumberIgnoreCase(staffNumber).orElseThrow(() ->
                 new RuntimeException("The result for " + staffNumber + " does not exist"));
 
-        studentRepo.delete(report);
+        resultRepo.delete(report);
         return report;
 
     }
 
     public Result updateResult(Result result) {
-        return studentRepo.save(result);
+        return resultRepo.save(result);
+    }
+
+    public Result searchResult(String keyword) {
+        return resultRepo.searchResult(keyword);
+    }
+
+
+    public Result getMyResult(){
+        String staffNumber = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        return resultRepo.findByStaffNumberIgnoreCase(staffNumber)
+                .orElseThrow(() -> new RuntimeException("Result not found"));
     }
 }

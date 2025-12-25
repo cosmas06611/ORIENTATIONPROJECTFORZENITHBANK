@@ -2,13 +2,11 @@ package com.cosmas.orientationapp.service;
 
 import com.cosmas.model.Batch;
 import com.cosmas.orientationapp.repository.BatchRepo;
-import com.cosmas.orientationapp.repository.StudentRepo;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
