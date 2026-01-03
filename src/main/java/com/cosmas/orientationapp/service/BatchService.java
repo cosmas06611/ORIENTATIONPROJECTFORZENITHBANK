@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -42,6 +45,7 @@ public class BatchService {
                }
 
                if(existingStaffNumbers.contains(staffNumber)){
+                   duplicateCount++;
                    continue;
                }
 
@@ -53,7 +57,38 @@ public class BatchService {
                newEntry.setUnit(getString(row, 4));
                newEntry.setDepartment(getString(row,5));
                newEntry.setBranch(getString(row, 6));
-               newEntry.setResumptionDate(getString(row, 7));
+               Cell cell = row.getCell(7);
+
+               if (cell != null) {
+                   switch (cell.getCellType()) {
+
+                       case NUMERIC:
+                           if (DateUtil.isCellDateFormatted(cell)) {
+                               newEntry.setResumptionDate(
+                                       cell.getDateCellValue()
+                                               .toInstant()
+                                               .atZone(ZoneId.systemDefault())
+                                               .toLocalDate()
+                               );
+                           }
+                           break;
+
+                       case STRING:
+                           String dateStr = cell.getStringCellValue().trim();
+                           if (!dateStr.isEmpty()) {
+                               DateTimeFormatter formatter =
+                                       DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                               newEntry.setResumptionDate(
+                                       LocalDate.parse(dateStr, formatter)
+                               );
+                           }
+                           break;
+
+                       default:
+                           // do nothing or log invalid date
+                           break;
+                   }
+               }
                newEntry.setPhoneNumber(getString(row,8));
                newEntry.setOfficialEmail(getString(row, 9));
                newEntry.setPersonalEmail(getString(row,10));

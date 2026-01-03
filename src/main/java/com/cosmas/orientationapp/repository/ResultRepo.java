@@ -27,6 +27,11 @@ WHERE LOWER(REPLACE(g.staffNumber, ' ', '')) =
 """)
     Result searchResult(@Param("keyword") String keyword);
 
+//    count number of results per remark
+@Query("SELECT LOWER(r.remark), COUNT(r) FROM Result r GROUP BY LOWER(r.remark)")
+    List<Object[]> countByRemark();
 
+//    Get all results for specific remark
+    List<Result> findByRemark(String remark);
 
 }

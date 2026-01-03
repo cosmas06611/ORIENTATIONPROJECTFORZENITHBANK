@@ -1,13 +1,12 @@
 package com.cosmas.orientationapp.service;
 
 import com.cosmas.model.Result;
-import com.lowagie.text.Document;
+import com.lowagie.text.*;
 import com.lowagie.text.Font;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfWriter;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 
 @Service
@@ -23,15 +22,25 @@ public class PDFService {
 
             Font titleFont = new Font(Font.HELVETICA, 16, Font.BOLD);
             Font bodyFont = new Font(Font.HELVETICA, 11);
-
+            Font zenithLogoFont = new Font(
+                    Font.HELVETICA,
+                    16,
+                    Font.BOLD,
+                    Color.RED
+            );
+            Paragraph bankName = new Paragraph("ZENITH BANK PLC", zenithLogoFont);
+            bankName.setAlignment(Element.ALIGN_CENTER);
+            document.add(bankName);
+            document.add(new Paragraph(" "));
             document.add(new Paragraph("Orientation Result Slip", titleFont));
             document.add(new Paragraph(" "));
+
 
             document.add(new Paragraph("Staff Number: " + result.getStaffNumber(), bodyFont));
             document.add(new Paragraph("Name: " + result.getName(), bodyFont));
             document.add(new Paragraph("Level: " + result.getLevel(),bodyFont));
             document.add(new Paragraph("Branch: "+ result.getBranch(), bodyFont));
-            document.add(new Paragraph("Job Title "+ result.getJobTitle(),bodyFont));
+            document.add(new Paragraph("Job Title: "+ result.getJobTitle(),bodyFont));
             document.add(new Paragraph("Month & Year: " + result.getMonthAndYear()));
 
             document.add(new Paragraph(" "));
@@ -48,7 +57,7 @@ public class PDFService {
             document.add(new Paragraph("Total Score: " + result.getTotalScore(), bodyFont));
             document.add(new Paragraph("Average Score: " + result.getAverageScore(), bodyFont));
             document.add(new Paragraph("Position: " + result.getPosition()));
-            document.add(new Paragraph("Remark: " + result.getName(), bodyFont));
+            document.add(new Paragraph("Remark: " + result.getRemark(), bodyFont));
             document.close();
             return out.toByteArray();
         }catch(Exception e){

@@ -3,14 +3,18 @@ package com.cosmas.orientationapp.controller;
 import com.cosmas.model.Result;
 import com.cosmas.orientationapp.service.PDFService;
 import com.cosmas.orientationapp.service.ResultService;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -27,7 +31,7 @@ public class ResultController {
 
 
 
-    //    admin can get all th result
+    //    admin can get all the result
     @GetMapping("/results")
     public ResponseEntity<List<Result>> getStudentResult() {
         List<Result> studGrade = resultService.getStudentGrades();
@@ -112,5 +116,24 @@ public class ResultController {
         }
 
         return ResponseEntity.ok(result);
+    }
+
+//    Dashboard percentages
+    @GetMapping("/dashboard-remark")
+    public Map<String, Double> getDashboardPercentage(){
+        return resultService.getRemarkPercentages();
+    }
+
+//    Download Excel file per remark
+    @GetMapping("/download/{remark}")
+    public ResponseEntity<InputStreamResource> downloadExcel(@PathVariable String remark) throws Exception{
+        InputStream in = resultService.exportResultsToExcel(remark);
+        String fileName = remark + "_results.xlsx";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 }

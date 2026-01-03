@@ -3,6 +3,7 @@ package com.cosmas.orientationapp.service;
 import com.cosmas.model.Result;
 import com.cosmas.orientationapp.repository.ResultRepo;
 
+import com.cosmas.orientationapp.utility.ExcelExporter;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Service
 public class ResultService {
@@ -187,5 +188,36 @@ public class ResultService {
 
         return resultRepo.findByStaffNumberIgnoreCase(staffNumber)
                 .orElseThrow(() -> new RuntimeException("Result not found"));
+    }
+
+//    Get percentage distribution of FAIL, PASS, FAIR, EXCELLENT
+    public Map<String, Double> getRemarkPercentages(){
+        List<Object[]> counts = resultRepo.countByRemark();
+        long total = resultRepo.count();
+        Map<String, Double> percentages = new HashMap<>();
+        for(Object[] row : counts){
+            String remark = (String) row[0];
+            long count = (long) row[1];
+            double percent = (total > 0) ? ((double) count / total) * 100 : 0;
+
+//            round to 2 decimal places
+            BigDecimal rounded = BigDecimal.valueOf(percent).setScale(2, RoundingMode.HALF_UP);
+
+            percentages.put(remark, rounded.doubleValue());
+        }
+        return percentages;
+    }
+
+
+//    Get results by remark
+    public List<Result> getResultsByRemark(String remark){
+        return resultRepo.findByRemark(remark);
+    }
+
+//    Export results of a specific remark to Excel
+
+    public InputStream exportResultsToExcel(String remark) throws Exception{
+        List<Result> results = getResultsByRemark(remark);
+        return ExcelExporter.resultsToExcel(results);
     }
 }
