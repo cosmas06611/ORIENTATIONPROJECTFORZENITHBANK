@@ -58,4 +58,7 @@ public class Batch {
     private String remark;
 
     private int batchNumber;
+
+    @Column(length = 150)
+    private String supervisorEmail;
 }

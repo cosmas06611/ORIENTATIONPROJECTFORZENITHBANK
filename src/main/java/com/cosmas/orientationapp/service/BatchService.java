@@ -198,6 +198,14 @@ private int getInt(Row row, int index){
       batchRepo.deleteById(staffNumber);
       return "Staff member " + staffNumber + " has been successfully removed from the batch.";
     }
+
+    public List<Batch> getAllBatch() {
+       return  batchRepo.findAll();
+    }
+
+    public Batch updateBatch(Batch batch) {
+        return batchRepo.save(batch);
+    }
 }
 
 

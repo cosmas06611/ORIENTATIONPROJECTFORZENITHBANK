@@ -7,8 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:3000")
 public class BatchController {
 
     private final BatchService batchService;
@@ -45,9 +48,30 @@ public class BatchController {
 
 
 //    this delete is for admin to delete staff who resigned before orientation.
-    @DeleteMapping("batch/{staffNumber}")
-    public ResponseEntity deleteByStaffNumber(@PathVariable String staffNumber){
-        String message = batchService.deleteStaffByStaffNumber(staffNumber);
-        return ResponseEntity.ok(message);
+    @DeleteMapping("batch/staff/{staffNumber}")
+    public ResponseEntity <String> deleteByStaffNumber(@PathVariable String staffNumber){
+       String staff = batchService.deleteStaffByStaffNumber(staffNumber);
+       if(staff == null){
+           return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+       }
+       return new ResponseEntity<>(staff, HttpStatus.OK);
+    }
+
+//    this method is to get all batch after downloading
+    @GetMapping("/get-batch")
+    public ResponseEntity<List<Batch>> getAllBatch(){
+        List<Batch> gb = batchService.getAllBatch();
+      if(gb != null){
+          return new ResponseEntity<>(gb, HttpStatus.OK);
+      }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @PutMapping("/update-batch")
+    public ResponseEntity<Batch> updateBatch(@RequestBody Batch batch){
+        Batch b = batchService.updateBatch(batch);
+        return (b != null) ?
+        new ResponseEntity<>(b, HttpStatus.ACCEPTED) :
+         new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }
