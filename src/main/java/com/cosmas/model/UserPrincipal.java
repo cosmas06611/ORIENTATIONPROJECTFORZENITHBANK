@@ -13,10 +13,11 @@ public class UserPrincipal implements UserDetails {
         this.users= Objects.requireNonNull(users, "USER MUST NOT BE NULL");
     }
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + users.getRole().name()));
+//        GrantedAuthority authority = new SimpleGrantedAuthority(users.getRole().name());
+//        return List.of(authority);
     }
 
     @Override

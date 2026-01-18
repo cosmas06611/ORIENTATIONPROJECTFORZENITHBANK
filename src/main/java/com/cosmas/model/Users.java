@@ -16,7 +16,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Users {
     @Id
+    @Column(nullable = false, unique = true)
     private String username;
+    @Column(nullable = false)
     private String password;
 
 //    DEFAULT USER, ADMIN EXPLICITLY SET

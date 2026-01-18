@@ -30,6 +30,11 @@ public class UsersService {
 
 
     public Users register(Users users) {
+        if(userRepo.existsByUsername(users.getUsername())){
+            throw new RuntimeException(
+                    "Staff with number " + users.getUsername() + " already exists"
+            );
+        }
         users.setPassword(encoder.encode(users.getPassword()));
         return userRepo.save(users);
     }

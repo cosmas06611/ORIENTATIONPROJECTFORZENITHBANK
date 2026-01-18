@@ -25,7 +25,7 @@ public class UsersController {
         if (user != null) {
             return new ResponseEntity<>(user, HttpStatus.CREATED);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
+        return  new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("/login")
